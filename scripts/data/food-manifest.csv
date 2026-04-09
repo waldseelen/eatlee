@@ -1,0 +1,138 @@
+﻿name,category,is_processed,usda_query,avg_price
+Tavuk Göğsü,meat_fish,false,chicken breast raw,247.5
+Tavuk But,meat_fish,false,chicken thigh raw,150
+Hindi Göğsü,meat_fish,false,turkey breast raw,377.5
+Hindi But,meat_fish,false,turkey thigh raw,237.5
+Dana Kıyma,meat_fish,false,ground beef lean raw,665
+Dana Antrikot,meat_fish,false,beef ribeye steak raw,1100
+Dana Biftek,meat_fish,false,beef sirloin steak raw,975
+Dana Bonfile,meat_fish,false,beef tenderloin raw,1500
+Kuzu But,meat_fish,false,lamb leg raw,765
+Kuzu Pirzola,meat_fish,false,lamb chop raw,1375
+Somon Norveç,meat_fish,false,atlantic salmon raw,975
+Somon Yerli,meat_fish,false,pink salmon raw,365
+Ton Balığı,meat_fish,true,tuna canned in water drained solids,145
+Sardalya,meat_fish,false,sardine raw,180
+Uskumru,meat_fish,false,mackerel raw,220
+Hamsi,meat_fish,false,anchovy raw,185
+Levrek,meat_fish,false,sea bass raw,550
+Çipura,meat_fish,false,sea bream raw,500
+Yumurta,dairy_eggs,false,egg whole raw,135
+Yumurta Akı,dairy_eggs,false,egg white raw,102.5
+Süt,dairy_eggs,false,milk whole,45
+Yarım Yağlı Süt,dairy_eggs,false,milk reduced fat 2%,38.5
+Yağsız Süt,dairy_eggs,false,milk nonfat,47.5
+Yoğurt,dairy_eggs,false,yogurt plain whole milk,120
+Süzme Yoğurt,dairy_eggs,false,greek yogurt plain whole milk,137.5
+Greek Yoğurt,dairy_eggs,false,greek yogurt plain nonfat,95
+Kefir,dairy_eggs,false,kefir plain lowfat,58
+Ayran,dairy_eggs,false,cultured buttermilk lowfat,50
+Lor,dairy_eggs,false,ricotta cheese part skim,127.5
+Süzme Peynir,dairy_eggs,true,cream cheese low fat,105
+Beyaz Peynir,dairy_eggs,false,feta cheese,335
+Kaşar,dairy_eggs,true,kashkaval cheese,385
+Mozzarella,dairy_eggs,true,mozzarella cheese whole milk,120
+Cheddar,dairy_eggs,true,cheddar cheese,150
+Cottage Cheese,dairy_eggs,false,cottage cheese lowfat,110
+Labne,dairy_eggs,true,labneh,80
+Tereyağı,dairy_eggs,true,butter salted,465
+Kırmızı Mercimek,legumes_grains,false,red lentils dry,60
+Yeşil Mercimek,legumes_grains,false,lentils raw,70
+Nohut,legumes_grains,false,chickpeas raw,87.5
+Kuru Fasulye,legumes_grains,false,white beans raw,102.5
+Barbunya,legumes_grains,false,cranberry beans raw,112.5
+Börülce,legumes_grains,false,cowpeas raw,122.5
+Bezelye,legumes_grains,false,split peas dry,57.5
+İç Bakla,legumes_grains,false,fava beans dry,150
+Soya Fasulyesi,legumes_grains,false,soybeans mature seeds raw,110
+Sarı Mercimek,legumes_grains,false,yellow lentils dry,95
+Yulaf,legumes_grains,false,oats rolled dry,65
+Pirinç,legumes_grains,false,rice white long grain raw,70
+Baldo Pirinç,legumes_grains,false,rice white medium grain raw,105
+Jasmin Pirinç,legumes_grains,false,rice jasmine raw,120
+Bulgur,legumes_grains,false,bulgur dry,36.5
+Kinoa,legumes_grains,false,quinoa raw,120
+Karabuğday,legumes_grains,false,buckwheat groats raw,80
+Arpa,legumes_grains,false,barley hulled raw,55
+Mısır,legumes_grains,false,corn grain yellow dried,92.5
+Mısır Unu,legumes_grains,true,corn flour whole grain,28.5
+İrmik,legumes_grains,true,semolina,23
+Kuskus,legumes_grains,true,couscous dry,35
+Tam Buğday Unu,legumes_grains,true,whole wheat flour,80
+Siyez,legumes_grains,false,einkorn wheat raw,112.5
+Tam Buğday Makarna,legumes_grains,true,whole wheat spaghetti dry,36.5
+Beyaz Makarna,legumes_grains,true,spaghetti dry enriched,21.5
+Erişte,legumes_grains,true,egg noodles dry,65
+Beyaz Ekmek,legumes_grains,true,white bread,12.5
+Tam Buğday Ekmek,legumes_grains,true,whole wheat bread,45
+Çavdar Ekmeği,legumes_grains,true,rye bread,49
+Lavaş,legumes_grains,true,lavash bread,45
+Yufka,legumes_grains,true,phyllo dough,87.5
+Tortilla,legumes_grains,true,flour tortilla,70
+Patates,vegetables,false,potato raw,20
+Tatlı Patates,vegetables,false,sweet potato raw,135
+Havuç,vegetables,false,carrots raw,27.5
+Kabak,vegetables,false,zucchini raw,40
+Patlıcan,vegetables,false,eggplant raw,60
+Domates,vegetables,false,tomatoes raw,57.5
+Salatalık,vegetables,false,cucumber with peel raw,47.5
+Kapya Biber,vegetables,false,sweet red pepper raw,87.5
+Soğan,vegetables,false,onions raw,22.5
+Sarımsak,vegetables,false,garlic raw,265
+Pırasa,vegetables,false,leeks raw,35
+Ispanak,vegetables,false,spinach raw,42.5
+Brokoli,vegetables,false,broccoli raw,62.5
+Karnabahar,vegetables,false,cauliflower raw,50
+Lahana,vegetables,false,cabbage green raw,27.5
+Mor Lahana,vegetables,false,cabbage red raw,35
+Brüksel Lahanası,vegetables,false,brussels sprouts raw,87.5
+Marul,vegetables,false,romaine lettuce raw,35
+Roka,vegetables,false,arugula raw,20
+Dereotu,vegetables,false,dill weed fresh,20
+Semizotu,vegetables,false,purslane raw,45
+Mantar,vegetables,false,mushrooms white raw,61.5
+Kereviz,vegetables,false,celeriac raw,57.5
+Pancar,vegetables,false,beets raw,42.5
+Turp,vegetables,false,radishes raw,35
+Enginar,vegetables,false,artichoke raw,67.5
+Bamya,vegetables,false,okra raw,265
+Taze Fasulye,vegetables,false,green beans raw,122.5
+Avokado,other,false,avocado raw,60
+Muz,other,false,banana raw,70
+Elma,other,false,apple raw with skin,50
+Armut,other,false,pear raw,65
+Portakal,other,false,orange raw,35
+Mandalina,other,false,tangerine raw,50
+Greyfurt,other,false,grapefruit raw,30
+Limon,other,false,lemon raw,47.5
+Nar,other,false,pomegranate raw,65
+Üzüm,other,false,grapes raw,132.5
+Çilek,other,false,strawberries raw,120
+Yaban Mersini,other,false,blueberries raw,115
+Ahududu,other,false,raspberries raw,127.5
+Kivi,other,false,kiwifruit raw,87.5
+Ananas,other,false,pineapple raw,112.5
+Mango,other,false,mango raw,92.5
+Şeftali,other,false,peaches raw,117.5
+Kuru Kayısı,other,false,apricots dried,475
+Kuru İncir,other,false,figs dried,600
+Hurma,other,false,dates medjool,400
+Karpuz,other,false,watermelon raw,65
+Badem,other,false,almonds,700
+Ceviz,other,false,walnuts,600
+Fındık,other,false,hazelnuts,715
+Yer Fıstığı,other,false,peanuts all types raw,180
+Kaju,other,false,cashew nuts raw,925
+Antep Fıstığı,other,false,pistachio nuts raw,1200
+Ay Çekirdeği,other,false,sunflower seed kernels dried,155
+Kabak Çekirdeği,other,false,pumpkin seed kernels dried,450
+Chia,other,false,chia seeds dried,65
+Keten Tohumu,other,false,flaxseed,50
+Susam,other,false,sesame seeds,75
+Tahin,other,true,tahini sesame butter,150
+Zeytinyağı,other,true,olive oil,465
+Ayçiçek Yağı,other,true,sunflower oil,267.5
+Hindistan Cevizi Yağı,other,true,coconut oil,182.5
+Bal,other,false,honey,350
+Salça,other,true,tomato paste,56.5
+Fıstık Ezmesi,other,true,peanut butter,132.5
