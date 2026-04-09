@@ -28,9 +28,8 @@ Read `AGENT.md`, `ARCHITECTURE.md`, `README.md`, `PROGRESS.md`, and `TASKS.md` f
   - removed the nonexistent `app/compare/page.tsx` reference
   - clarified that comparison is modal-only
   - corrected the documented Vercel/Supabase environment variable requirements
-- Important audit findings still to keep in mind:
+- Important audit finding still to keep in mind:
   - `TASKS.md` / docs say 100 foods at launch, but the current manifest and imported dataset contain 137 rows
-  - the workspace currently has no `.git` directory, so Vercel local linking is verified, but Git-provider repository linkage cannot be fully verified from this checkout
 
 ## Completed this session
 
@@ -53,7 +52,14 @@ Read `AGENT.md`, `ARCHITECTURE.md`, `README.md`, `PROGRESS.md`, and `TASKS.md` f
   - supports `SMOKE_BASE_URL` for production/remote smoke runs
   - works without hanging on Windows
 
-### Vercel
+### Git / GitHub / Vercel
+- Initialized a Git repository with `main` as the default branch.
+- Created the new public GitHub repository:
+  - `https://github.com/waldseelen/eatlee`
+- Set Git remote:
+  - `origin https://github.com/waldseelen/eatlee.git`
+- Updated `.gitignore` to better exclude local-only / generated files.
+- Connected Vercel Git integration to the GitHub repository.
 - Created and linked the Vercel project: `eatlee`
 - Added the required environment variables to Vercel for:
   - Production
@@ -79,14 +85,8 @@ Read `AGENT.md`, `ARCHITECTURE.md`, `README.md`, `PROGRESS.md`, and `TASKS.md` f
 - 4.5
 - 8.1
 - 8.2
+- 8.3
 - 8.4
-
-### Remaining unchecked task
-- **8.3 Deploy to production under existing domain**
-  - `eatlee.bugraakin.com` was prepared on Vercel, but DNS is not fully configured yet.
-  - Vercel reports the required record is:
-    - `A eatlee.bugraakin.com 76.76.21.21`
-  - Until that DNS record is added at the domain provider, the custom domain task is not complete.
 
 ## Verification run this session
 - `npm run lint` ✅

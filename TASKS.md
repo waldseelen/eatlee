@@ -73,5 +73,5 @@ After completing all eligible tasks, update PROGRESS.md briefly and accurately b
 
 - [x] 8.1 Configure Vercel project linked to repository
 - [x] 8.2 Set all environment variables in Vercel dashboard
-- [ ] 8.3 Deploy to production under existing domain
+- [x] 8.3 Deploy to production under existing domain
 - [x] 8.4 Smoke test: browse foods, apply filters, compare foods, update price as admin

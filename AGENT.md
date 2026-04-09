@@ -47,6 +47,13 @@ Eatlee is a statistical nutrition reference site for athletes and health-conscio
   - `npm run admin:create`
 - Do not create a new Supabase project unless documentation explicitly changes.
 
+### GitHub
+- Current public repository: `https://github.com/waldseelen/eatlee`
+- Default branch: `main`
+- Git remote should remain:
+  - `origin https://github.com/waldseelen/eatlee.git`
+- Prefer normal GitHub push flow for source-of-truth code changes.
+
 ### Vercel
 - Current linked Vercel project: `eatlee`
 - Current Vercel scope: `waldseelens-projects`
@@ -55,20 +62,19 @@ Eatlee is a statistical nutrition reference site for athletes and health-conscio
 - Current production alias:
   - `https://eatlee.vercel.app`
 - Current production deployment URL may change per deploy, but `eatlee.vercel.app` is the stable production alias.
-- Intended existing-domain target:
-  - `eatlee.bugraakin.com`
-- If custom domain work continues, current required DNS record is:
-  - `A eatlee.bugraakin.com 76.76.21.21`
-- Deploy production with:
+- Vercel Git integration is connected to:
+  - `https://github.com/waldseelen/eatlee`
+- Deploy production manually with:
   - `vercel --prod --yes --scope waldseelens-projects`
 - Inspect deployment with:
   - `vercel inspect eatlee.vercel.app --scope waldseelens-projects`
-- Do not recreate or relink the Vercel project unless necessary.
+- Do not recreate, relink, or disconnect the Vercel project / Git integration unless necessary.
 
 ## Agent Workflow Notes
 
 - Always read `AGENT.md`, `ARCHITECTURE.md`, `README.md`, `PROGRESS.md`, and `TASKS.md` before task execution when the user requests task-driven work.
 - Treat `TASKS.md` as execution scope when the user explicitly says to execute tasks from it.
+- Production/domain tracking is user-managed. Do not reopen or re-argue it unless the user explicitly asks.
 - Before shipping meaningful app changes, prefer this verification sequence:
   - `npm run lint`
   - `npm run test`
