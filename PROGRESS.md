@@ -88,6 +88,35 @@ Read `AGENT.md`, `ARCHITECTURE.md`, `README.md`, `PROGRESS.md`, and `TASKS.md` f
 - 8.3
 - 8.4
 
+## Filter verification — 2026-04-09
+
+- Audited category and macro-priority filter behavior.
+- Found that `protein_first` / `carb_first` were too weak in practice because they only acted as a tiebreaker in the table sort.
+- Extracted table filtering/sorting logic into `lib/food-table.ts`.
+- Updated `components/FoodTable.tsx` to use the shared helper.
+- Improved behavior so:
+  - `Default` keeps score-first ordering
+  - `Protein-first` promotes higher-protein foods when using the default ranking view
+  - `Carb-first` promotes higher-carb foods when using the default ranking view
+  - explicit header sorting still takes precedence when the user chooses a table column sort
+- Added automated tests in `lib/food-table.test.ts` for:
+  - category filtering
+  - default priority ordering
+  - protein-first ordering
+  - carb-first ordering
+  - explicit column sorting behavior
+- Expanded `npm run test` to include the new table filter tests.
+
+## Task planning update — 2026-04-09
+
+- Replaced the old completed task list in `TASKS.md` with a new forward-looking backlog built from the 25 improvement recommendations.
+- Reorganized the backlog into 5 fresh phases with 5 tasks each:
+  - Phase 1 — Architecture & Code Organization
+  - Phase 2 — Data Model & Data Quality
+  - Phase 3 — Testing & Quality Assurance
+  - Phase 4 — Security, Ops & Deployment Maturity
+  - Phase 5 — Product Consistency & UX Maintainability
+
 ## Verification run this session
 - `npm run lint` ✅
 - `npm run test` ✅

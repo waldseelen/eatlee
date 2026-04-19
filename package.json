@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --import tsx --test lib/scoring.test.ts",
+    "test": "node --import tsx --test lib/scoring.test.ts lib/food-table.test.ts",
     "scores:recalculate": "tsx scripts/recalculate-scores.ts",
     "foods:import": "python scripts/import-foods.py",
     "admin:create": "tsx scripts/create-admin.ts",

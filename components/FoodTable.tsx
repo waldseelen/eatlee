@@ -2,6 +2,11 @@
 
 import { Suspense, useCallback, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import {
+  getVisibleFoods,
+  type FoodTableSortKey,
+  type FoodTableSortState,
+} from "@/lib/food-table";
 import type { Category, FoodWithDetails, MacroPriority } from "@/lib/types";
 import CompareModal from "./CompareModal";
 import FilterBar from "./FilterBar";
@@ -11,26 +16,10 @@ interface FoodTableProps {
   readonly foods: ReadonlyArray<FoodWithDetails>;
 }
 
-type SortKey =
-  | "name"
-  | "category"
-  | "protein"
-  | "calories"
-  | "fat"
-  | "fiber"
-  | "carbs"
-  | "price"
-  | "score";
-
-interface SortState {
-  readonly key: SortKey;
-  readonly direction: "asc" | "desc";
-}
-
 const MAX_COMPARE = 4;
 
 const COLUMN_HEADERS: ReadonlyArray<{
-  key: SortKey;
+  key: FoodTableSortKey;
   label: string;
   className?: string;
 }> = [
@@ -45,40 +34,6 @@ const COLUMN_HEADERS: ReadonlyArray<{
   { key: "score", label: "PYF" },
 ];
 
-function getSortValue(food: FoodWithDetails, key: SortKey): number | string {
-  switch (key) {
-    case "name":
-      return food.name.toLocaleLowerCase("tr-TR");
-    case "category":
-      return food.category;
-    case "protein":
-      return food.protein;
-    case "calories":
-      return food.calories;
-    case "fat":
-      return food.fat;
-    case "fiber":
-      return food.fiber;
-    case "carbs":
-      return food.carbs;
-    case "price":
-      return food.price?.price_per_kg ?? -1;
-    case "score":
-      return food.score?.pyf_normalized ?? -1;
-  }
-}
-
-function getSecondaryMacroValue(food: FoodWithDetails, priority: MacroPriority) {
-  switch (priority) {
-    case "protein_first":
-      return food.protein;
-    case "carb_first":
-      return food.carbs;
-    default:
-      return 0;
-  }
-}
-
 function FoodTableInner({ foods }: FoodTableProps) {
   const searchParams = useSearchParams();
   const activeCategory = (searchParams.get("category") ?? "all") as
@@ -86,14 +41,14 @@ function FoodTableInner({ foods }: FoodTableProps) {
     | "all";
   const activePriority = (searchParams.get("priority") ?? "default") as MacroPriority;
 
-  const [sort, setSort] = useState<SortState>({
+  const [sort, setSort] = useState<FoodTableSortState>({
     key: "score",
     direction: "desc",
   });
   const [selectedIds, setSelectedIds] = useState<ReadonlyArray<string>>([]);
   const [showCompare, setShowCompare] = useState(false);
 
-  const handleSort = useCallback((key: SortKey) => {
+  const handleSort = useCallback((key: FoodTableSortKey) => {
     setSort((current) => {
       if (current.key === key) {
         return {
@@ -123,35 +78,16 @@ function FoodTableInner({ foods }: FoodTableProps) {
     });
   }, []);
 
-  const filteredFoods = useMemo(() => {
-    const subset =
-      activeCategory === "all"
-        ? foods
-        : foods.filter((food) => food.category === activeCategory);
-
-    return [...subset].sort((left, right) => {
-      const leftValue = getSortValue(left, sort.key);
-      const rightValue = getSortValue(right, sort.key);
-      const direction = sort.direction === "asc" ? 1 : -1;
-
-      if (typeof leftValue === "string" && typeof rightValue === "string") {
-        const result = leftValue.localeCompare(rightValue, "tr");
-        if (result !== 0) {
-          return result * direction;
-        }
-      } else {
-        const result = (leftValue as number) - (rightValue as number);
-        if (result !== 0) {
-          return result * direction;
-        }
-      }
-
-      return (
-        getSecondaryMacroValue(right, activePriority) -
-        getSecondaryMacroValue(left, activePriority)
-      );
-    });
-  }, [activeCategory, activePriority, foods, sort]);
+  const filteredFoods = useMemo(
+    () =>
+      getVisibleFoods({
+        foods,
+        activeCategory,
+        activePriority,
+        sort,
+      }),
+    [activeCategory, activePriority, foods, sort]
+  );
 
   const selectedFoods = useMemo(
     () => foods.filter((food) => selectedIds.includes(food.id)),
