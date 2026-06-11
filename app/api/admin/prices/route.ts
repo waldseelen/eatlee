@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAuthenticatedUser } from "@/lib/api-auth";
 import { recalculateAllScores } from "@/lib/recalculate";
-import { getServiceClient } from "@/lib/supabase";
+import { getFirestoreDb } from "@/lib/firebase-admin";
 
 interface PriceChange {
   foodId: string;
@@ -44,23 +44,20 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = getServiceClient();
+    const db = getFirestoreDb();
     const now = new Date().toISOString();
 
-    const { error: insertError } = await supabase.from("prices").insert(
-      body.prices.map((change) => ({
+    const batch = db.batch();
+    for (const change of body.prices) {
+      const docRef = db.collection("prices").doc();
+      batch.set(docRef, {
         food_id: change.foodId,
         price_per_kg: change.pricePerKg,
         updated_at: now,
-      }))
-    );
-
-    if (insertError) {
-      return NextResponse.json(
-        { success: false, message: insertError.message },
-        { status: 500 }
-      );
+      });
     }
+
+    await batch.commit();
 
     const summary = await recalculateAllScores();
 

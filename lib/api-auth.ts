@@ -1,15 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
-
-function getPublicEnv() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !anonKey) {
-    throw new Error("Supabase public environment variables are not configured.");
-  }
-
-  return { url, anonKey };
-}
+import { getFirebaseAuth } from "./firebase-admin";
 
 export function getServerAdminEmail(): string | null {
   return process.env.ADMIN_EMAIL ?? process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? null;
@@ -38,22 +27,20 @@ export async function requireAuthenticatedUser(request: Request) {
     return null;
   }
 
-  const { url, anonKey } = getPublicEnv();
-  const authClient = createClient(url, anonKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
+  try {
+    const auth = getFirebaseAuth();
+    const decodedToken = await auth.verifyIdToken(token);
 
-  const {
-    data: { user },
-    error,
-  } = await authClient.auth.getUser(token);
+    if (!decodedToken.email || !isServerAdminEmail(decodedToken.email)) {
+      return null;
+    }
 
-  if (error || !user || !isServerAdminEmail(user.email)) {
+    return {
+      email: decodedToken.email,
+      uid: decodedToken.uid,
+    };
+  } catch (error) {
+    console.error("Token verification failed:", error);
     return null;
   }
-
-  return user;
 }

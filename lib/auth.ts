@@ -1,5 +1,12 @@
-import type { Session } from "@supabase/supabase-js";
-import { getBrowserClient } from "./supabase";
+import { signInWithEmailAndPassword, signOut as firebaseSignOut } from "firebase/auth";
+import { auth } from "./firebase";
+
+export interface Session {
+  user: {
+    email: string | null;
+  };
+  access_token: string | null;
+}
 
 export function getConfiguredAdminEmail(): string | null {
   return process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? null;
@@ -16,35 +23,47 @@ export function isAdminEmail(email: string | null | undefined): boolean {
 }
 
 export async function signIn(email: string, password: string) {
-  const supabase = getBrowserClient();
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (error) {
-    return { session: null, error: error.message };
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const token = await userCredential.user.getIdToken();
+    const session: Session = {
+      user: {
+        email: userCredential.user.email,
+      },
+      access_token: token,
+    };
+    return { session, error: null };
+  } catch (error) {
+    return { session: null, error: error instanceof Error ? error.message : "Sign in failed." };
   }
-
-  return { session: data.session, error: null };
 }
 
 export async function signOut() {
-  const supabase = getBrowserClient();
-  const { error } = await supabase.auth.signOut();
-
-  return { error: error?.message ?? null };
+  try {
+    await firebaseSignOut(auth);
+    return { error: null };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Sign out failed." };
+  }
 }
 
-export async function getSession() {
-  const supabase = getBrowserClient();
-  const { data, error } = await supabase.auth.getSession();
-
-  if (error) {
-    return { session: null, error: error.message };
+export async function getSession(): Promise<{ session: Session | null; error: string | null }> {
+  const user = auth.currentUser;
+  if (!user) {
+    return { session: null, error: null };
   }
-
-  return { session: data.session, error: null };
+  try {
+    const token = await user.getIdToken();
+    const session: Session = {
+      user: {
+        email: user.email,
+      },
+      access_token: token,
+    };
+    return { session, error: null };
+  } catch (error) {
+    return { session: null, error: error instanceof Error ? error.message : "Failed to get token." };
+  }
 }
 
 export async function getAccessToken(): Promise<string | null> {

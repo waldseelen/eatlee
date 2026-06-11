@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { Session } from "@supabase/supabase-js";
-import { getSession, isAdmin, signIn, signOut } from "@/lib/auth";
-import { getBrowserClient, hasPublicSupabaseEnv } from "@/lib/supabase";
+import { isAdmin, signIn, signOut, type Session } from "@/lib/auth";
+import { auth, hasPublicFirebaseEnv } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 function LoginForm({
   onLogin,
@@ -27,7 +27,7 @@ function LoginForm({
           Eatlee Admin
         </h1>
         <p className="mt-3 text-sm leading-6 text-eatlee-green/60">
-          Sign in with the Supabase admin account to update monthly prices and
+          Sign in with the Firebase admin account to update monthly prices and
           recalculate all PYF scores.
         </p>
 
@@ -113,7 +113,7 @@ export default function AdminLayout({
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const setupReady = useMemo(() => hasPublicSupabaseEnv(), []);
+  const setupReady = useMemo(() => hasPublicFirebaseEnv(), []);
 
   useEffect(() => {
     if (!setupReady) {
@@ -122,36 +122,31 @@ export default function AdminLayout({
     }
 
     let active = true;
-    const supabase = getBrowserClient();
 
-    const loadSession = async () => {
-      try {
-        const { session: currentSession } = await getSession();
-
-        if (active) {
-          setSession(currentSession);
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!active) {
+        return;
       }
-    };
 
-    void loadSession();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      if (active) {
-        setSession(nextSession);
-        setLoading(false);
+      if (user) {
+        try {
+          const token = await user.getIdToken();
+          setSession({
+            user: { email: user.email },
+            access_token: token,
+          });
+        } catch {
+          setSession(null);
+        }
+      } else {
+        setSession(null);
       }
+      setLoading(false);
     });
 
     return () => {
       active = false;
-      subscription.unsubscribe();
+      unsubscribe();
     };
   }, [setupReady]);
 
@@ -160,10 +155,10 @@ export default function AdminLayout({
       <div className="flex min-h-screen items-center justify-center bg-eatlee-cream px-4 py-8">
         <div className="max-w-lg rounded-[2rem] bg-white p-8 text-sm text-eatlee-green/70 shadow-soft">
           <h1 className="font-heading text-3xl font-bold text-eatlee-green">
-            Supabase setup required
+            Firebase setup required
           </h1>
           <p className="mt-3 leading-7">
-            Add the public Supabase environment variables before using the admin
+            Add the public Firebase environment variables before using the admin
             panel.
           </p>
         </div>

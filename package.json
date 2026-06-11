@@ -15,7 +15,8 @@
     "db:push": "npx supabase db push"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.102.1",
+    "firebase": "^12.14.0",
+    "firebase-admin": "^14.0.0",
     "next": "14.2.35",
     "react": "18.2.0",
     "react-dom": "18.2.0"

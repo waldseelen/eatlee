@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getAccessToken } from "@/lib/auth";
 import { CATEGORY_LABELS, type Category, type Food, type Price } from "@/lib/types";
-import { getBrowserClient } from "@/lib/supabase";
+import { getFirestore, collection, query, orderBy, getDocs } from "firebase/firestore";
+import { app } from "@/lib/firebase";
 
 interface FoodWithPrice extends Food {
   currentPrice: number | null;
@@ -65,46 +66,54 @@ export default function AdminPage() {
 
   const fetchFoods = useCallback(async () => {
     setLoading(true);
-    const supabase = getBrowserClient();
+    const db = getFirestore(app!);
 
-    const [{ data: foodRows, error: foodsError }, { data: priceRows, error: pricesError }] =
-      await Promise.all([
-        supabase.from("foods").select("*").order("category").order("name"),
-        supabase.from("prices").select("*").order("updated_at", { ascending: false }),
+    try {
+      const [foodsSnap, pricesSnap] = await Promise.all([
+        getDocs(query(collection(db, "foods"), orderBy("category"), orderBy("name"))),
+        getDocs(query(collection(db, "prices"), orderBy("updated_at", "desc"))),
       ]);
 
-    if (foodsError || pricesError) {
+      const foodRows = foodsSnap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Food[];
+
+      const priceRows = pricesSnap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Price[];
+
+      const latestPriceMap = new Map<string, Price>();
+      for (const price of priceRows) {
+        if (!latestPriceMap.has(price.food_id)) {
+          latestPriceMap.set(price.food_id, price);
+        }
+      }
+
+      const mappedFoods = foodRows.map((food) => ({
+        ...food,
+        currentPrice: latestPriceMap.get(food.id)?.price_per_kg ?? null,
+      }));
+
+      setFoods(mappedFoods);
+      setLastUpdated(priceRows[0]?.updated_at ?? null);
+      setPriceInputs(
+        new Map(
+          mappedFoods.map((food) => [
+            food.id,
+            food.currentPrice !== null ? String(food.currentPrice) : "",
+          ])
+        )
+      );
+    } catch (error) {
       showToast(
-        foodsError?.message ?? pricesError?.message ?? "Data could not be loaded.",
+        error instanceof Error ? error.message : "Data could not be loaded.",
         "error"
       );
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const latestPriceMap = new Map<string, Price>();
-    for (const price of (priceRows ?? []) as Price[]) {
-      if (!latestPriceMap.has(price.food_id)) {
-        latestPriceMap.set(price.food_id, price);
-      }
-    }
-
-    const mappedFoods = ((foodRows ?? []) as Food[]).map((food) => ({
-      ...food,
-      currentPrice: latestPriceMap.get(food.id)?.price_per_kg ?? null,
-    }));
-
-    setFoods(mappedFoods);
-    setLastUpdated((priceRows as Price[] | null)?.[0]?.updated_at ?? null);
-    setPriceInputs(
-      new Map(
-        mappedFoods.map((food) => [
-          food.id,
-          food.currentPrice !== null ? String(food.currentPrice) : "",
-        ])
-      )
-    );
-    setLoading(false);
   }, [showToast]);
 
   useEffect(() => {

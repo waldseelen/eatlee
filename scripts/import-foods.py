@@ -35,6 +35,8 @@ import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+import firebase_admin
+from firebase_admin import credentials, firestore
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -287,38 +289,9 @@ def build_food_payload(row: ManifestRow, food: dict[str, Any], thresholds: dict[
     )
 
 
-class SupabaseRestClient:
-    def __init__(self, url: str, service_role_key: str) -> None:
-        self.base_url = url.rstrip("/") + "/rest/v1"
-        self.headers = {
-            "apikey": service_role_key,
-            "Authorization": f"Bearer {service_role_key}",
-            "Prefer": "return=representation",
-        }
-
-    def select_single(self, table: str, *, filters: dict[str, str]) -> dict[str, Any] | None:
-        query = urllib.parse.urlencode(filters)
-        url = f"{self.base_url}/{table}?select=*&{query}"
-        result = request_json(url, headers=self.headers)
-        return result[0] if result else None
-
-    def insert(self, table: str, payload: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        url = f"{self.base_url}/{table}"
-        return request_json(url, headers=self.headers, data=payload, method="POST")
-
-    def patch(self, table: str, *, filters: dict[str, str], payload: dict[str, Any]) -> list[dict[str, Any]]:
-        query = urllib.parse.urlencode(filters)
-        url = f"{self.base_url}/{table}?{query}"
-        headers = {**self.headers, "Prefer": "return=representation"}
-        return request_json(url, headers=headers, data=payload, method="PATCH")
-
-
-
-def upsert_food_and_price(client: SupabaseRestClient, payload: FoodPayload, avg_price: float) -> None:
-    existing = client.select_single(
-        "foods",
-        filters={"name": f"eq.{payload.name}"},
-    )
+def upsert_food_and_price(db, payload: FoodPayload, avg_price: float) -> None:
+    foods_ref = db.collection("foods")
+    query = foods_ref.where("name", "==", payload.name).limit(1).get()
 
     food_body = {
         "name": payload.name,
@@ -336,27 +309,20 @@ def upsert_food_and_price(client: SupabaseRestClient, payload: FoodPayload, avg_
         "usda_fdc_id": payload.usda_fdc_id,
     }
 
-    if existing:
-        updated = client.patch(
-            "foods",
-            filters={"id": f"eq.{existing['id']}"},
-            payload=food_body,
-        )
-        food_id = updated[0]["id"]
+    if query:
+        doc = query[0]
+        doc.reference.update(food_body)
+        food_id = doc.id
     else:
-        inserted = client.insert("foods", [food_body])
-        food_id = inserted[0]["id"]
+        doc_ref = foods_ref.document()
+        doc_ref.set(food_body)
+        food_id = doc_ref.id
 
-    client.insert(
-        "prices",
-        [
-            {
-                "food_id": food_id,
-                "price_per_kg": avg_price,
-                "updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            }
-        ],
-    )
+    db.collection("prices").add({
+        "food_id": food_id,
+        "price_per_kg": avg_price,
+        "updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    })
 
 
 
@@ -371,17 +337,17 @@ def main() -> int:
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Fetch USDA data and print the payloads without writing to Supabase.",
+        help="Fetch USDA data and print the payloads without writing to Firestore.",
     )
     args = parser.parse_args()
 
     api_key = require_env("USDA_API_KEY")
-    supabase_url = require_env("NEXT_PUBLIC_SUPABASE_URL")
-    service_role_key = require_env("SUPABASE_SERVICE_ROLE_KEY")
+    project_id = require_env("NEXT_PUBLIC_FIREBASE_PROJECT_ID")
+    client_email = require_env("FIREBASE_CLIENT_EMAIL")
+    private_key = require_env("FIREBASE_PRIVATE_KEY")
 
     manifest = load_manifest(args.manifest)
     thresholds = load_formula_thresholds()
-    client = SupabaseRestClient(supabase_url, service_role_key)
 
     payloads: list[FoodPayload] = []
 
@@ -398,8 +364,23 @@ def main() -> int:
         print(json.dumps([payload.__dict__ for payload in payloads], indent=2, ensure_ascii=False))
         return 0
 
+    if private_key:
+        private_key = private_key.replace("\\n", "\n")
+
+    cred_dict = {
+        "type": "service_account",
+        "project_id": project_id,
+        "client_email": client_email,
+        "private_key": private_key,
+        "token_uri": "https://oauth2.googleapis.com/token",
+    }
+
+    cred = credentials.Certificate(cred_dict)
+    firebase_admin.initialize_app(cred)
+    db = firestore.client()
+
     for row, payload in zip(manifest, payloads, strict=True):
-        upsert_food_and_price(client, payload, row.avg_price)
+        upsert_food_and_price(db, payload, row.avg_price)
         print(
             f"[import] Wrote {payload.name} and initial price {row.avg_price}.",
             file=sys.stderr,
@@ -407,6 +388,7 @@ def main() -> int:
 
     print(f"[import] Imported {len(payloads)} foods.", file=sys.stderr)
     return 0
+
 
 
 if __name__ == "__main__":

@@ -1,7 +1,8 @@
 import { FORMULA_CONFIG } from "./formula.config";
 import { buildRankedScores, checkWHOCompliance } from "./scoring";
-import { getServiceClient } from "./supabase";
+import { getFirestoreDb } from "./firebase-admin";
 import type { Food, Price } from "./types";
+import type { QueryDocumentSnapshot } from "firebase-admin/firestore";
 
 export interface RecalculateSummary {
   readonly calculatedAt: string;
@@ -12,24 +13,23 @@ export interface RecalculateSummary {
 }
 
 export async function recalculateAllScores(): Promise<RecalculateSummary> {
-  const supabase = getServiceClient();
+  const db = getFirestoreDb();
 
-  const [{ data: foods, error: foodsError }, { data: prices, error: pricesError }] =
-    await Promise.all([
-      supabase.from("foods").select("*").order("name"),
-      supabase.from("prices").select("*").order("updated_at", { ascending: false }),
-    ]);
+  const [foodsSnap, pricesSnap] = await Promise.all([
+    db.collection("foods").orderBy("name").get(),
+    db.collection("prices").orderBy("updated_at", "desc").get(),
+  ]);
 
-  if (foodsError) {
-    throw new Error(`Failed to fetch foods: ${foodsError.message}`);
-  }
+  const foodRows = foodsSnap.docs.map((doc: QueryDocumentSnapshot) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Food[];
 
-  if (pricesError) {
-    throw new Error(`Failed to fetch prices: ${pricesError.message}`);
-  }
+  const priceRows = pricesSnap.docs.map((doc: QueryDocumentSnapshot) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Price[];
 
-  const foodRows = (foods ?? []) as Food[];
-  const priceRows = (prices ?? []) as Price[];
   const calculatedAt = new Date().toISOString();
 
   const { rankedFoods, skippedFoodIds } = buildRankedScores(foodRows, priceRows);
@@ -39,29 +39,22 @@ export async function recalculateAllScores(): Promise<RecalculateSummary> {
     who_compliant: checkWHOCompliance(food).compliant,
   }));
 
-  for (const update of complianceUpdates) {
-    const { error } = await supabase
-      .from("foods")
-      .update({ who_compliant: update.who_compliant })
-      .eq("id", update.id);
+  const batch = db.batch();
 
-    if (error) {
-      throw new Error(`Failed to update WHO compliance: ${error.message}`);
-    }
+  for (const update of complianceUpdates) {
+    const docRef = db.collection("foods").doc(update.id);
+    batch.update(docRef, { who_compliant: update.who_compliant });
   }
 
-  const { error: clearError } = await supabase
-    .from("scores")
-    .delete()
-    .not("id", "is", null);
-
-  if (clearError) {
-    throw new Error(`Failed to clear scores: ${clearError.message}`);
+  const scoresSnap = await db.collection("scores").get();
+  for (const doc of scoresSnap.docs) {
+    batch.delete(doc.ref);
   }
 
   if (rankedFoods.length > 0) {
-    const { error: insertError } = await supabase.from("scores").insert(
-      rankedFoods.map((row) => ({
+    for (const row of rankedFoods) {
+      const docRef = db.collection("scores").doc(row.food_id);
+      batch.set(docRef, {
         food_id: row.food_id,
         pyf_raw: row.pyf_raw,
         pyf_normalized: row.pyf_normalized,
@@ -69,23 +62,18 @@ export async function recalculateAllScores(): Promise<RecalculateSummary> {
         global_rank: row.global_rank,
         tier: row.tier,
         calculated_at: calculatedAt,
-      }))
-    );
-
-    if (insertError) {
-      throw new Error(`Failed to insert scores: ${insertError.message}`);
+      });
     }
   }
 
-  const { error: configLogError } = await supabase.from("config_log").insert({
+  const logRef = db.collection("config_log").doc();
+  batch.set(logRef, {
     changed_at: calculatedAt,
     changed_by: "recalculate-scores",
     snapshot: FORMULA_CONFIG as unknown as Record<string, unknown>,
   });
 
-  if (configLogError) {
-    throw new Error(`Failed to log formula snapshot: ${configLogError.message}`);
-  }
+  await batch.commit();
 
   return {
     calculatedAt,
