@@ -6,31 +6,19 @@ export interface Session {
     email: string | null;
   };
   access_token: string | null;
-}
-
-export function getConfiguredAdminEmail(): string | null {
-  return process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? null;
-}
-
-export function isAdminEmail(email: string | null | undefined): boolean {
-  const adminEmail = getConfiguredAdminEmail();
-
-  if (!adminEmail || !email) {
-    return false;
-  }
-
-  return email.toLowerCase() === adminEmail.toLowerCase();
+  claims: Record<string, any>;
 }
 
 export async function signIn(email: string, password: string) {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const token = await userCredential.user.getIdToken();
+    const tokenResult = await userCredential.user.getIdTokenResult();
     const session: Session = {
       user: {
         email: userCredential.user.email,
       },
-      access_token: token,
+      access_token: tokenResult.token,
+      claims: tokenResult.claims,
     };
     return { session, error: null };
   } catch (error) {
@@ -53,12 +41,13 @@ export async function getSession(): Promise<{ session: Session | null; error: st
     return { session: null, error: null };
   }
   try {
-    const token = await user.getIdToken();
+    const tokenResult = await user.getIdTokenResult();
     const session: Session = {
       user: {
         email: user.email,
       },
-      access_token: token,
+      access_token: tokenResult.token,
+      claims: tokenResult.claims,
     };
     return { session, error: null };
   } catch (error) {
@@ -72,5 +61,5 @@ export async function getAccessToken(): Promise<string | null> {
 }
 
 export function isAdmin(session: Session | null): boolean {
-  return isAdminEmail(session?.user?.email);
+  return session?.claims?.admin === true;
 }

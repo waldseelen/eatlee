@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, type Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -23,4 +24,10 @@ const app = hasPublicFirebaseEnv()
 
 const auth = app ? getAuth(app) : ({} as unknown as Auth);
 
-export { app, auth };
+const db = app ? initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager(),
+  })
+}) : ({} as unknown as Firestore);
+
+export { app, auth, db };
