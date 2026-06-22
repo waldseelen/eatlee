@@ -1,3 +1,4 @@
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata } from "next";
 import { Inter, Syne } from "next/font/google";
 import "./globals.css";
@@ -27,6 +28,7 @@ export default function RootLayout({
     <html lang="tr" className={`${inter.variable} ${syne.variable}`}>
       <body className="min-h-screen bg-eatlee-cream text-eatlee-green antialiased">
         {children}
+        <SpeedInsights />
       </body>
     </html>
   );
