@@ -17,9 +17,11 @@ Eatlee is a statistical nutrition reference site for athletes and health-conscio
 
 - Local development secrets live in `.env.local` and must never be committed.
 - Expected environment variables:
-  - `NEXT_PUBLIC_SUPABASE_URL`
-  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-  - `SUPABASE_SERVICE_ROLE_KEY`
+  - The standard Firebase web-config keys, all `NEXT_PUBLIC_FIREBASE_*`
+    (`API_KEY`, `AUTH_DOMAIN`, `PROJECT_ID`, `STORAGE_BUCKET`,
+    `MESSAGING_SENDER_ID`, `APP_ID`) — consumed by `lib/firebase.ts`
+  - `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` — service-account credentials
+    for the Admin SDK in `lib/firebase-admin.ts` (server-only, never client-exposed)
   - `USDA_API_KEY`
   - `NEXT_PUBLIC_ADMIN_EMAIL`
   - `ADMIN_EMAIL`
@@ -35,17 +37,17 @@ Eatlee is a statistical nutrition reference site for athletes and health-conscio
 
 ## Operational References
 
-### Supabase
-- Current linked Supabase project ref: `hzdrvruefghfnjjrkevq`
-- Supabase config lives in `supabase/config.toml`.
-- Schema source of truth lives in `supabase/migrations/001_create_tables.sql`.
-- Push schema changes with:
-  - `npm run db:push`
-- If price data changes or `lib/formula.config.ts` changes, run:
+### Firebase
+- Data + auth run on **Firebase** — Cloud Firestore (data) and Firebase Auth (single admin
+  account). There is no Supabase, no `supabase/` directory, and no SQL migrations.
+- Client init: `lib/firebase.ts`. Server/Admin SDK init: `lib/firebase-admin.ts`.
+- Firestore has no migration/schema-push step — collections (`foods`, `prices`, `scores`,
+  `config_log`) are implicit. There is **no** `npm run db:push` command; do not run one.
+- If price data changes or `lib/formula.config.ts` changes, recompute all scores with:
   - `npm run scores:recalculate`
-- Admin user maintenance command:
+- Admin user maintenance command (reads `ADMIN_EMAIL` / `ADMIN_PASSWORD`):
   - `npm run admin:create`
-- Do not create a new Supabase project unless documentation explicitly changes.
+- Do not migrate the data layer to Supabase/Prisma/SQL unless documentation explicitly changes.
 
 ### GitHub
 - Current public repository: `https://github.com/waldseelen/eatlee`
@@ -88,7 +90,7 @@ Eatlee is a statistical nutrition reference site for athletes and health-conscio
 
 ## In Scope
 
-- Next.js + Supabase full-stack web application
+- Next.js + Firebase (Cloud Firestore) full-stack web application
 - PYF score engine driven entirely by `formula.config.ts`
 - Food listing, filtering, category-based browsing
 - Multi-food comparison via modal (side-by-side)
@@ -124,6 +126,10 @@ Eatlee is a statistical nutrition reference site for athletes and health-conscio
 - The PYF formula lives exclusively in `formula.config.ts`
 - Changing this file triggers automatic recalculation of all scores
 - No hardcoded weights, references, or thresholds anywhere else in the codebase
+  - Known exception to be aware of: the mid-tier `0.4` split is currently hardcoded in
+    `assignRanksAndTiers` in `lib/scoring.ts`. Only `goodTierPercentile` is config-driven.
+    If you touch tiering, prefer moving this into `formula.config.ts` rather than adding
+    more hardcoded thresholds.
 - Macro target: 35% Carbohydrate / 35% Protein / 30% Fat
 
 ## Score & Ranking Rules
