@@ -1,6 +1,4 @@
-import dynamic from 'next/dynamic';
-
-const AdminLayoutClient = dynamic(() => import('./AdminLayoutClient'), { ssr: false });
+import AdminLayoutClient from './AdminLayoutClient';
 
 export default function AdminLayout({
   children,

@@ -130,10 +130,11 @@ export default function AdminLayoutClient({
 
       if (user) {
         try {
-          const token = await user.getIdToken();
+          const tokenResult = await user.getIdTokenResult();
           setSession({
             user: { email: user.email },
-            access_token: token,
+            access_token: tokenResult.token,
+            claims: tokenResult.claims,
           });
         } catch {
           setSession(null);

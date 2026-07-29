@@ -1,6 +1,4 @@
-import dynamic from 'next/dynamic';
-
-const AdminPageClient = dynamic(() => import('./AdminPageClient'), { ssr: false });
+import AdminPageClient from './AdminPageClient';
 
 export default function AdminPage() {
   return <AdminPageClient />;
